@@ -11,21 +11,21 @@ import React, { useState, useEffect, useReducer, useMemo } from 'react';
 import LoginForm from './screens/LoginForm';
 import Dashboard from './screens/Dashboard';
 import Splash from './screens/Splash';
-import { Platform, StyleSheet, AsyncStorage, StatusBar, Text } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { Platform, StyleSheet, AsyncStorage, Text, Button, View } from 'react-native';
+import { NavigationContainer, NavigationActions } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { AuthContext, reducer, prevState } from './Context/AuthContext';
 
 const Stack = createStackNavigator();
 
-const App = () => {
+const App = (props) => {
 
   const [state, dispatch] = useReducer(reducer, prevState);
-
+// demo2@foodie.com
+// 123456
   const authContext = useMemo(
       () => ({
         signIn: async (email, password) => {
-
           await fetch("http://192.168.1.243/hellodrive/public/api/shop/login", {
             method: 'POST',
             headers: {
@@ -39,7 +39,7 @@ const App = () => {
           })
           .then((response) => response.json())
           .then((responseData) => {
-              console.log('responseData' + responseData);
+              console.log(responseData);
               if(responseData && responseData.access_token) {
                 dispatch({ type: 'SIGN_IN', token: responseData.access_token, isLoading: false});
                 AsyncStorage.setItem('token', responseData.access_token);
@@ -76,13 +76,24 @@ const App = () => {
         <Splash />
       )
   }
+
+  const DrawerButton = (props) => {
+  return (
+    <View>
+      <Button onPress={() => {props.navigation.openDrawer()}} title="Menu"/>
+    </View>
+  );
+};
+
+
   return (
       <AuthContext.Provider value={ authContext }>
         <NavigationContainer>
           <Stack.Navigator>
           { state.loggedIn ? (
               <>
-                <Stack.Screen name="Dashboard" component={Dashboard} options={{title:'Dashboard'}} />
+                <Stack.Screen name="Dashboard" component={Dashboard}
+                />
               </>
             ) : (
               <>

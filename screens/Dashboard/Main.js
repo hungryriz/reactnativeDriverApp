@@ -9,7 +9,8 @@ import Maps from './Main/Maps';
 
 const MainTabs = createMaterialTopTabNavigator();
 
-function Main({ ...props }) {
+function Main({ navigation }) {
+
   const [loggedIn, setLoggedIn] = useState(false);
   const [token, setToken] = useState();
   const authContext = useContext(AuthContext);
@@ -22,7 +23,6 @@ function Main({ ...props }) {
     </MainTabs.Navigator>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: {

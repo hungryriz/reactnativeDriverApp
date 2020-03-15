@@ -1,103 +1,120 @@
 import React, {Component, useState, useEffect} from 'react';
-import { Platform, StyleSheet, AsyncStorage ,  Image} from 'react-native';
-import { Container, Header, Content, Card, CardItem, Thumbnail, Text, Button, Icon, Left, Body, Right, Title, Footer, FooterTab } from 'native-base';
+import { Platform, StyleSheet, AsyncStorage , Image, FlatList, View, TouchableHighlight, Text} from 'react-native';
+import { DrawerActions } from '@react-navigation/native';
+import { Container, Header, Content, Card, CardItem, Thumbnail, Button, Icon, Left, Body, Right, Title, Footer, FooterTab } from 'native-base';
 import SafeAreaView from 'react-native-safe-area-view';
+import moment from "moment";
+import clsx from "clsx";
 
 
-function Orders({ ...props }) {
-  const [loggedIn, setLoggedIn] = useState(false);
-  const [token, setToken] = useState();
-  
+function Orders({ navigation }) {
+  const [orders, setOrders] = useState([]);
+  const [page, setPage] = useState(1);
+  const [token, setToken] = useState(null);
+
+  const getOrders = (token) => {
+
+    let bearer = 'Bearer ' + token;
+    console.log('getOrder');
+    console.log(page);
+    console.log('getOrder');
+    fetch("http://192.168.1.243/hellodrive/public/api/shop/orders/list" + '?page=' + page, {
+      method: 'GET',
+      headers: {
+        'Authorization': bearer,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    })
+    .then((response) => response.json())
+    .then((responseData) => {
+      if(responseData.error) {
+        console.log(responseData);
+        authContext.signOut();
+      } else {
+        console.log(responseData);
+        setOrders(responseData);
+        if(page >= responseData.lastPage) {
+          setPage(responseData.lastPage);
+        } else {
+          setPage(page+1);
+        }
+      }
+    })
+    .done();
+  }
+
+  const showOrderDetails  = (order) => {
+    alert('Order');
+  }
+  useEffect(() => {
+    // Update the document title using the browser API
+    AsyncStorage.getItem('token')
+    .then((token) => {
+      if(token) {
+        getOrders(token);
+        setToken(token);
+      } else {
+        authContext.signOut();
+      }
+    }) 
+  }, []);
+
   return (
-      <Container>
-        <Header>
-          <Left>
-            <Button transparent>
-              <Icon name='menu' />
-            </Button>
-          </Left>
-          <Body>
-            <Title>Header</Title>
-          </Body>
-          <Right />
-        </Header>
-        <Content>
-          <Text>
-            This is Content Section This is Content Section 
-            This is Content Section This is Content Section This is Content Section This is Content Section
-            This is Content Section This is Content Section This is Content Section
-            This is Content Section This is Content Section This is Content Section
-            This is Content Section This is Content Section This is Content Section
-            This is Content Section This is Content Section This is Content Section
-            This is Content Section This is Content Section This is Content Section
-            This is Content Section This is Content Section This is Content Section
-            This is Content Section This is Content Section This is Content Section
-            This is Content Section This is Content Section This is Content Section
-            This is Content Section This is Content Section This is Content Section
-            This is Content Section This is Content Section This is Content Section
-            This is Content Section This is Content Section This is Content Section
-            This is Content Section This is Content Section This is Content Section
-            This is Content Section This is Content Section This is Content Section
-            This is Content Section This is Content Section This is Content Section
-            This is Content Section This is Content Section This is Content Section
-            This is Content Section This is Content Section This is Content Section
-            This is Content Section This is Content Section This is Content Section
-            This is Content Section This is Content Section This is Content Section
-            This is Content Section This is Content Section This is Content Section
-            This is Content Section This is Content Section This is Content Section
-          </Text>
-        </Content>
-        <Footer>
-          <FooterTab>
-            <Button full>
-              <Text>Footer</Text>
-            </Button>
-          </FooterTab>
-        </Footer>
-      </Container>
+      <View style={styles.container}>
+        <FlatList
+          ListEmptyComponent={<Text style={styles.emptyText}>No Orders found</Text>}
+          numColumns={1}
+          onEndReached={() => {
+            getOrders(token);
+          }}
+          onEndReachedThreshold={5}
+          data={orders.data}
+          renderItem={({item, index, separators}) => (
+            <TouchableHighlight
+              onPress={() => showOrderDetails(item)}
+              onShowUnderlay={separators.highlight}
+              onHideUnderlay={separators.unhighlight}>
+              <View style={styles.row}>
+                <Text style={styles.column}>{ item.id }</Text>
+                <Text style={styles.column}>{ moment(item.created_at).format('DD/MM/YYYY, h:mm') }</Text>
+                <Text style={styles.column}>{item.address.landmark ? item.address.landmark : 'No address given' }</Text>
+                <Text style={[styles.column, styles.amount]}>{(item.invoice && item.invoice.payable) ? item.invoice.payable : 'No invoice'}</Text>
+              </View>
+            </TouchableHighlight>
+          )}
+        />
+      </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     backgroundColor: '#F5FCFF',
-  },
-  redBorder: {
-    borderBottomColor: 'red',
-  },
-  textInput: {
-    borderWidth: 0,
-    borderColor: 'transparent',
-    borderBottomColor: '#000',
-    borderStyle: 'dashed',
-    borderBottomWidth: 1,
-    fontSize: 16,
-    width: 150,
-    textAlign: 'center'
-  },
-  loginButtonText: {
-    textAlign: 'center',
-    fontWeight: 'bold',
-    fontSize: 16
-  },
-  loginButton: {
-    borderWidth: 1,
-    borderColor: '#007BFF',
-    backgroundColor: '#007BFF',
     paddingTop: 10,
-    paddingBottom: 10,
-    margin: 5,
-    minWidth: 120,
-    marginTop: 20
+    width: '100%'
   },
-  loginButtonDisabled: {
-    opacity: 0.5,
+  emptyText: {
+    paddingTop: 20,
+  },
+  amount: {
+    fontWeight: 'bold',
+    textAlign: 'left'
+  },
+  row: {
+    flex: 1, 
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    paddingLeft: 10,
+    paddingRight: 10,
+    backgroundColor : 'white'
+  },
+  column: {
+    flexWrap: 'wrap',
+    fontSize: 14
   }
-
 });
 
 export default Orders;
