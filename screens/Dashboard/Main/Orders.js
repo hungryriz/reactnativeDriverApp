@@ -11,48 +11,66 @@ function Orders({ navigation }) {
   const [orders, setOrders] = useState([]);
   const [page, setPage] = useState(1);
   const [token, setToken] = useState(null);
+  const [lastpage, setLastpage] = useState(null);
+  const [refreshing, setRefreshing] = useState(true);
+  const [onMomentumScrollBegin, setOnMomentumScrollBegin] = useState(true);
 
-  const getOrders = (token) => {
-
+  const getOrders = (token, currentPage) => {
     let bearer = 'Bearer ' + token;
-    console.log('getOrder');
-    console.log(page);
-    console.log('getOrder');
-    fetch("http://192.168.1.243/hellodrive/public/api/shop/orders/list" + '?page=' + page, {
-      method: 'GET',
-      headers: {
-        'Authorization': bearer,
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      }
-    })
-    .then((response) => response.json())
-    .then((responseData) => {
-      if(responseData.error) {
-        console.log(responseData);
-        authContext.signOut();
-      } else {
-        console.log(responseData);
-        setOrders(responseData);
-        if(page >= responseData.lastPage) {
-          setPage(responseData.lastPage);
-        } else {
-          setPage(page+1);
+
+    currentPage = currentPage ? currentPage : page;
+    console.log('-------------');
+    console.log(currentPage);
+    console.log('-------------');
+    // alert('onMomentumScrollBegin' + onMomentumScrollBegin);
+    if(onMomentumScrollBegin) {
+      setOnMomentumScrollBegin(false);
+      fetch("http://192.168.1.243/hellodrive/public/api/shop/orders/list" + '?page=' + currentPage, {
+        method: 'GET',
+        headers: {
+          'Authorization': bearer,
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
         }
-      }
-    })
-    .done();
+      })
+      .then((response) => response.json())
+      .then((responseData) => {
+        if(responseData.error) {
+          authContext.signOut();
+        } else {
+
+          let allOrders = [];
+
+          if(orders && orders.data && orders.data.length > 0) {
+            allOrders = [...orders.data,...responseData.data];
+            responseData.data = allOrders;
+          } 
+          
+          setOrders(responseData);
+          if(page >= responseData.last_page) {
+            setPage(responseData.last_page);
+          } else {
+            setPage(currentPage);
+          }
+          setRefreshing(false);
+          setLastpage(responseData.last_page);
+        }
+      })
+      .done();
+    }
   }
 
   const showOrderDetails  = (order) => {
-    alert('Order');
+    alert('Order Details');
   }
   useEffect(() => {
     // Update the document title using the browser API
     AsyncStorage.getItem('token')
     .then((token) => {
       if(token) {
-        getOrders(token);
+        if(!lastpage || (page <= lastpage)) {
+          getOrders(token, page);
+        }
         setToken(token);
       } else {
         authContext.signOut();
@@ -64,11 +82,25 @@ function Orders({ navigation }) {
       <View style={styles.container}>
         <FlatList
           ListEmptyComponent={<Text style={styles.emptyText}>No Orders found</Text>}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+          refreshing={refreshing}
+          //onRefresh={()=>{alert('onRefresh')}}
           numColumns={1}
-          onEndReached={() => {
-            getOrders(token);
+          onEndReachedThreshold={0.5}
+          onMomentumScrollBegin={() => {setOnMomentumScrollBegin(true);
+                                }}
+
+          onMomentumScrollEnd={() => {
+            console.log('onEndReached');
+            
+            let nextPage = page + 1;
+
+            if(nextPage <= lastpage) {
+              setPage(nextPage);
+              getOrders(token, nextPage);
+            }
           }}
-          onEndReachedThreshold={5}
+          // onScroll={({nativeEvent})=>{ console.log(nativeEvent)}}
           data={orders.data}
           renderItem={({item, index, separators}) => (
             <TouchableHighlight
@@ -90,7 +122,6 @@ function Orders({ navigation }) {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: '#F5FCFF',
     paddingTop: 10,
     width: '100%'
@@ -114,6 +145,10 @@ const styles = StyleSheet.create({
   column: {
     flexWrap: 'wrap',
     fontSize: 14
+  },
+  separator: {
+    backgroundColor : 'white',
+    height: 5
   }
 });
 
