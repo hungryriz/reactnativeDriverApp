@@ -3,6 +3,7 @@ import { Platform, StyleSheet, Text, View, TextInput, TouchableOpacity, AsyncSto
 import { AuthContext } from '../../Context/AuthContext';
 import SafeAreaView from 'react-native-safe-area-view';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import OrdersHistory from './Main/OrdersHistory';
 import Orders from './Main/Orders';
 import Address from './Main/Address';
 import Maps from './Main/Maps';
@@ -18,6 +19,7 @@ function Main({ navigation }) {
   return (
     <MainTabs.Navigator>
       <MainTabs.Screen name="Orders" component={Orders} />
+      <MainTabs.Screen name="OrdersHistory" component={OrdersHistory} options={{title: 'Orders History'}}/>
       <MainTabs.Screen name="Address" component={Address} />
       <MainTabs.Screen name="Maps" component={Maps} />
     </MainTabs.Navigator>

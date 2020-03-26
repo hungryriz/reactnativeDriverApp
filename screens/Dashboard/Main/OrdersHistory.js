@@ -5,9 +5,9 @@ import { Container, Header, Content, Card, CardItem, Thumbnail, Button, Icon, Le
 import SafeAreaView from 'react-native-safe-area-view';
 import moment from "moment";
 import clsx from "clsx";
-import Modal from "react-native-modal";
 
-function Orders({ navigation }) {
+
+function OrdersHistory({ navigation }) {
   const [orders, setOrders] = useState([]);
   const [page, setPage] = useState(1);
   const [token, setToken] = useState(null);
@@ -15,7 +15,6 @@ function Orders({ navigation }) {
   const [refreshing, setRefreshing] = useState(true);
   const [onMomentumScrollBegin, setOnMomentumScrollBegin] = useState(true);
   const [pagesDisplayed, setPagesDisplayed] = useState([]);
-  const [modalVisible, setModalVisible] = useState(false);
 
   const getOrders = (token, currentPage) => {
     let bearer = 'Bearer ' + token;
@@ -24,9 +23,7 @@ function Orders({ navigation }) {
 
     if(onMomentumScrollBegin) {
       // // setOnMomentumScrollBegin(false);
-      fetch("http://192.168.1.243/hellodrive/public/api/shop/orders/list" 
-        + '?page=' + currentPage 
-        + '&date=' + moment(new Date()).format('YYYY-MM-DD'), {
+      fetch("http://192.168.1.243/hellodrive/public/api/shop/orders/list" + '?page=' + currentPage, {
         method: 'GET',
         headers: {
           'Authorization': bearer,
@@ -39,7 +36,9 @@ function Orders({ navigation }) {
         if(responseData.error) {
           authContext.signOut();
         } else {
+
           let allOrders = [];
+
           if(orders && orders.data && orders.data.length > 0) {
             allOrders = [...orders.data,...responseData.data];
             responseData.data = allOrders;
@@ -64,11 +63,14 @@ function Orders({ navigation }) {
   const getOrderPages = (token, pages) => {
     
     let maxPageDisplayed = Math.max(...pagesDisplayed);
+    console.log('pages' + pages);
+    console.log('maxPageDisplayed' + maxPageDisplayed);
     if(pages > maxPageDisplayed) {
       ++maxPageDisplayed;
       for(; maxPageDisplayed <= pages; maxPageDisplayed++) {
         getOrders(token, maxPageDisplayed);
       }
+
     }
   }
 
@@ -91,38 +93,8 @@ function Orders({ navigation }) {
 
   }
 
-  const ShowOrderDetails  = (order) => {
-    //navigation.navigate('OrderDetails', { post: 1 });
-    return (
-      <View>
-        <Modal
-          isVisible={modalVisible}
-          onSwipeComplete={() => setModalVisible(false)}
-          swipeDirection="left"
-          onBackdropPress={() => setModalVisible(false)}
-          style={{height: 200}}
-          transparent={true}
-          backdropOpacity={0}
-          >
-          <View style={{
-                  flex: 1,
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  backgroundColor: '#ddd'}}>
-              <View style={{backgroundColor: '#AAA'}}>
-                <Text>Hello World!</Text>
-                <TouchableHighlight
-                  onPress={() => {
-                    setModalVisible(false);
-                  }}>
-                  <Text>Hide Modal</Text>
-                </TouchableHighlight>
-              </View>
-          </View>
-        </Modal>
-      </View>
-    );
+  const showOrderDetails  = (order) => {
+    alert('Order Details');
   }
   useEffect(() => {
     // Update the document title using the browser API
@@ -149,41 +121,38 @@ function Orders({ navigation }) {
           ListEmptyComponent={<Text style={styles.emptyText}>No Orders found</Text>}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
           refreshing={refreshing}
-          ListFooterComponent={() =>{
-              return  lastpage > 1 ? <Pagination lastpage = {lastpage} /> : null;
-            }}
+          ListFooterComponent={() =>(
+                  <Pagination lastpage = {lastpage} />
+            )}
           numColumns={1}
           onEndReachedThreshold={0.5}
           // onMomentumScrollBegin={() => {setOnMomentumScrollBegin(true);}}
+
           // onMomentumScrollEnd={() => {
           //   console.log('onEndReached');
+            
           //   let nextPage = page + 1;
           //   setPage(nextPage);
+
           //   if(nextPage <= lastpage) {
           //     getOrders(token, nextPage);
           //   }
           // }}
           data={orders.data}
           renderItem={({item, index, separators}) => (
-            <>
-              <TouchableHighlight
-                onPress={() => setModalVisible(true) }
-                onHideUnderlay={separators.unhighlight}
-                underlayColor={'#ddd'}>
-
-                <View style={styles.row}>
-                  <Text style={styles.column}>{ item.id }</Text>
-                  <Text style={styles.column}>{ moment(item.created_at).format('DD/MM/YYYY, h:mm') }</Text>
-                  <Text style={styles.column}>{item.address.landmark ? item.address.landmark : 'No address given' }</Text>
-                  <Text style={[styles.column, styles.amount]}>{(item.invoice && item.invoice.payable) ? item.invoice.payable : 'No invoice'}</Text>
-                </View>
-              </TouchableHighlight>
-              <ShowOrderDetails order={item}/>
-            </>
+            <TouchableHighlight
+              onPress={() => showOrderDetails(item)}
+              onShowUnderlay={separators.highlight}
+              onHideUnderlay={separators.unhighlight}>
+              <View style={styles.row}>
+                <Text style={styles.column}>{ item.id }</Text>
+                <Text style={styles.column}>{ moment(item.created_at).format('DD/MM/YYYY, h:mm') }</Text>
+                <Text style={styles.column}>{item.address.landmark ? item.address.landmark : 'No address given' }</Text>
+                <Text style={[styles.column, styles.amount]}>{(item.invoice && item.invoice.payable) ? item.invoice.payable : 'No invoice'}</Text>
+              </View>
+            </TouchableHighlight>
           )}
         />
-
-
       </View>
   );
 }
@@ -208,14 +177,11 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     paddingLeft: 10,
     paddingRight: 10,
-    paddingTop: 18,
-    backgroundColor : '#000',
-    height: 50,
+    backgroundColor : 'white',
   },
   column: {
     flexWrap: 'wrap',
-    fontSize: 14,
-    color: '#FFF',
+    fontSize: 14
   },
   separator: {
     backgroundColor : 'white',
@@ -238,4 +204,4 @@ const styles = StyleSheet.create({
   }
 });
 
-export default Orders;
+export default OrdersHistory;

@@ -89,11 +89,10 @@ const App = (props) => {
   return (
       <AuthContext.Provider value={ authContext }>
         <NavigationContainer>
-          <Stack.Navigator>
+          <Stack.Navigator mode="modal">
           { state.loggedIn ? (
               <>
-                <Stack.Screen name="Dashboard" component={Dashboard}
-                />
+                <Stack.Screen name="Dashboard" component={Dashboard} />
               </>
             ) : (
               <>
