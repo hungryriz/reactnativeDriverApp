@@ -15,14 +15,55 @@ import { Platform, StyleSheet, AsyncStorage, Text, Button, View } from 'react-na
 import { NavigationContainer, NavigationActions } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { AuthContext, reducer, prevState } from './Context/AuthContext';
+import firebase from 'react-native-firebase';
 
 const Stack = createStackNavigator();
 
 const App = (props) => {
-
+ 
   const [state, dispatch] = useReducer(reducer, prevState);
 // demo2@foodie.com
 // 123456
+
+
+  const getToken = () => {
+    firebase.messaging().getToken()
+      .then(fcmToken => {
+        if (fcmToken) {
+          console.log(fcmToken);
+          // user has a device token
+        } else {
+          // user doesn't have a device token yet
+        } 
+      });
+  }
+
+  const createNotificationListeners = () => {
+    
+  }
+
+  const getPermission = () => {
+    try {
+        // await firebase.messaging().requestPermission();
+        // User has authorised
+        alert('Permission allowed');
+    } catch (error) {
+        // User has rejected permissions
+        alert(error);
+    }
+  }
+
+  const checkPermission = async () => {
+    const enabled = await firebase.messaging().hasPermission();
+    if (enabled) {
+        // user has permissions
+        getToken();
+    } else {
+        // user doesn't have permission
+        getPermission();
+    }
+  }
+
   const authContext = useMemo(
       () => ({
         signIn: async (email, password) => {
@@ -61,6 +102,14 @@ const App = (props) => {
 
   useEffect(() => {
     // Update the document title using the browser API
+    checkPermission();
+    createNotificationListeners();
+
+    messageListener = firebase.messaging().onMessage((message: RemoteMessage) => {
+        // Process your message as required
+        alert(message);
+    });
+
     AsyncStorage.getItem('token')
     .then((token) => {
         if(token) {

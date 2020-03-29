@@ -48,6 +48,8 @@ function Orders({ navigation }) {
           setPagesDisplayed([...pagesDisplayed, currentPage]);
           
           setOrders(responseData);
+          console.log('getOrders');
+          console.log(responseData);
           if(page >= responseData.last_page) {
             setPage(responseData.last_page);
           } else {

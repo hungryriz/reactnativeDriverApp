@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "608091204059",
+    "firebase_url": "https://hellodriveapp.firebaseio.com",
+    "project_id": "hellodriveapp",
+    "storage_bucket": "hellodriveapp.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:608091204059:android:320cb50c5a4b1716055ffe",
+        "android_client_info": {
+          "package_name": "com.hellodriveapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "608091204059-gv7nuqilhjv52ss97mi9ti7tjell1bqr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDoBAXt4UB-o5EIyJc8LFmnLigKUiDWimM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "608091204059-gv7nuqilhjv52ss97mi9ti7tjell1bqr.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
