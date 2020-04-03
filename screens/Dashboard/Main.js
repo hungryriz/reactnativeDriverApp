@@ -1,4 +1,4 @@
-import React, {Component, useState, useEffect, useContext} from 'react';
+import React, {Component, useState, useContext} from 'react';
 import { Platform, StyleSheet, Text, View, TextInput, TouchableOpacity, AsyncStorage } from 'react-native';
 import { AuthContext } from '../../Context/AuthContext';
 import SafeAreaView from 'react-native-safe-area-view';

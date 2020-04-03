@@ -1,11 +1,12 @@
 import React, {Component, useState, useEffect} from 'react';
-import { Platform, StyleSheet, AsyncStorage , ScrollView, FlatList, View, TouchableHighlight, Text} from 'react-native';
+import { Platform, StyleSheet, ScrollView, FlatList, View, TouchableHighlight, Text} from 'react-native';
 import { DrawerActions } from '@react-navigation/native';
 import { Container, Header, Content, Card, CardItem, Thumbnail, Button, Icon, Left, Body, Right, Title, Footer, FooterTab } from 'native-base';
 import SafeAreaView from 'react-native-safe-area-view';
 import moment from "moment";
 import clsx from "clsx";
-
+import AsyncStorage from '@react-native-community/async-storage';
+import { AuthContext } from '../../../Context/AuthContext';
 
 function OrdersHistory({ navigation }) {
   const [orders, setOrders] = useState([]);
@@ -15,6 +16,7 @@ function OrdersHistory({ navigation }) {
   const [refreshing, setRefreshing] = useState(true);
   const [onMomentumScrollBegin, setOnMomentumScrollBegin] = useState(true);
   const [pagesDisplayed, setPagesDisplayed] = useState([]);
+  const authContext = React.useContext(AuthContext);
 
   const getOrders = (token, currentPage) => {
     let bearer = 'Bearer ' + token;
@@ -63,8 +65,8 @@ function OrdersHistory({ navigation }) {
   const getOrderPages = (token, pages) => {
     
     let maxPageDisplayed = Math.max(...pagesDisplayed);
-    console.log('pages' + pages);
-    console.log('maxPageDisplayed' + maxPageDisplayed);
+    // console.log('pages' + pages);
+    // console.log('maxPageDisplayed' + maxPageDisplayed);
     if(pages > maxPageDisplayed) {
       ++maxPageDisplayed;
       for(; maxPageDisplayed <= pages; maxPageDisplayed++) {
@@ -79,7 +81,7 @@ function OrdersHistory({ navigation }) {
 
     for(let i = 1; i < lastPageNumber; i++) {
       pages.push(
-        <TouchableHighlight onPress={() => getOrderPages(token, i)}>
+        <TouchableHighlight onPress={() => getOrderPages(token, i)} key={i}>
           <View style={styles.row}>
             <Text style={styles.paginatorButtonText}>{ i }</Text>
           </View>
@@ -98,21 +100,28 @@ function OrdersHistory({ navigation }) {
   }
   useEffect(() => {
     // Update the document title using the browser API
-    AsyncStorage.getItem('token')
-    .then((token) => {
-      if(token) {
-        if(
-            (!lastpage || 
-              (pagesDisplayed && !pagesDisplayed.includes(page))
-            )
-          ) {
-          getOrders(token, page);
+    let mounted = true;
+    if(mounted) {
+      AsyncStorage.getItem('token')
+      .then((token) => {
+        if(token) {
+          if(
+              (!lastpage || 
+                (pagesDisplayed && !pagesDisplayed.includes(page))
+              )
+            ) {
+            getOrders(token, page);
+          }
+          setToken(token);
+        } else {
+          authContext.signOut();
         }
-        setToken(token);
-      } else {
-        authContext.signOut();
-      }
-    }) 
+      });
+    }
+
+    return () => {
+        mounted = false;
+    }
   }, []);
 
   return (
@@ -122,9 +131,10 @@ function OrdersHistory({ navigation }) {
           ItemSeparatorComponent={() => <View style={styles.separator} />}
           refreshing={refreshing}
           ListFooterComponent={() =>(
-                  <Pagination lastpage = {lastpage} />
-            )}
+            <Pagination lastpage = {lastpage} key='Pagination'/>
+          )}
           numColumns={1}
+          keyExtractor = {(item, index) => 'list-item-' + index}
           onEndReachedThreshold={0.5}
           // onMomentumScrollBegin={() => {setOnMomentumScrollBegin(true);}}
 

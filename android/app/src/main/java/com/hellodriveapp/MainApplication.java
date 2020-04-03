@@ -10,7 +10,7 @@ import com.facebook.soloader.SoLoader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import com.facebook.react.ReactApplication;
-import io.invertase.firebase.messaging.RNFirebaseMessagingPackage; // <-- Add this line
+// import io.invertase.firebase.messaging.RNFirebaseMessagingPackage; // <-- Add this line
 // import io.invertase.firebase.messaging.RNFirebaseNotificationsPackage; // <-- Add this line
 
 
@@ -29,7 +29,7 @@ public class MainApplication extends Application implements ReactApplication {
           List<ReactPackage> packages = new PackageList(this).getPackages();
           // Packages that cannot be autolinked yet can be added manually here, for example:
           // packages.add(new MyReactNativePackage());
-          packages.add(new RNFirebaseMessagingPackage());
+          // packages.add(new RNFirebaseMessagingPackage());
           return packages;
         }
 
@@ -75,15 +75,6 @@ public class MainApplication extends Application implements ReactApplication {
         e.printStackTrace();
       }
     }
-  }
-
-  protected List<ReactPackage> getPackages() {
-    @SuppressWarnings("UnnecessaryLocalVariable")
-    List<ReactPackage> packages = new PackageList(this).getPackages();
-    // Packages that cannot be autolinked yet can be added manually here, for example:
-    // packages.add(new MyReactNativePackage());
-    packages.add(new RNFirebaseMessagingPackage()); // <-- Add this line
-    return packages;
   }
 
 }

@@ -1,11 +1,13 @@
-import React, {Component, useState, useEffect} from 'react';
+import React, {Component, useState} from 'react';
 import { Platform, StyleSheet, Text, View, TextInput, TouchableOpacity, AsyncStorage } from 'react-native';
 import SafeAreaView from 'react-native-safe-area-view';
+import { AuthContext } from '../../Context/AuthContext';
 
 
 function Contactus({ ...props }) {
   const [loggedIn, setLoggedIn] = useState(false);
   const [token, setToken] = useState();
+  const authContext  = React.useContext(AuthContext);
   
   return (
     <SafeAreaView style={styles.container}>

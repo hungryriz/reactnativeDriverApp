@@ -11,17 +11,20 @@ import React, { useState, useEffect, useReducer, useMemo } from 'react';
 import LoginForm from './screens/LoginForm';
 import Dashboard from './screens/Dashboard';
 import Splash from './screens/Splash';
-import { Platform, StyleSheet, AsyncStorage, Text, Button, View } from 'react-native';
+import { Platform, StyleSheet, Text, Button, View } from 'react-native';
+import AsyncStorage from '@react-native-community/async-storage';
 import { NavigationContainer, NavigationActions } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { AuthContext, reducer, prevState } from './Context/AuthContext';
-import firebase from 'react-native-firebase';
+import firebase from '@react-native-firebase/app';
+import '@react-native-firebase/messaging';
 
 const Stack = createStackNavigator();
 
 const App = (props) => {
  
   const [state, dispatch] = useReducer(reducer, prevState);
+
 // demo2@foodie.com
 // 123456
 
@@ -95,6 +98,9 @@ const App = (props) => {
         saveToken: (token) => {
           dispatch({ type: 'SAVE_TOKEN', token: token, isLoading: false});
           AsyncStorage.setItem('token', token);
+        },
+        resetState: () => {
+          dispatch({ type: 'RESET' });
         }
       }),
       []
@@ -102,22 +108,30 @@ const App = (props) => {
 
   useEffect(() => {
     // Update the document title using the browser API
-    checkPermission();
-    createNotificationListeners();
+    let mounted = true;
+    if(mounted) {
 
-    messageListener = firebase.messaging().onMessage((message: RemoteMessage) => {
-        // Process your message as required
-        alert(message);
-    });
+      checkPermission();
+      createNotificationListeners();
 
-    AsyncStorage.getItem('token')
-    .then((token) => {
+      messageListener = firebase.messaging().onMessage((message: RemoteMessage) => {
+          // Process your message as required
+          alert(message);
+      });
+
+      AsyncStorage.getItem('token')
+      .then((token) => {
         if(token) {
           authContext.saveToken(token);
         } else {
           authContext.signOut();
         }
-      }) 
+      });
+    }
+
+    return () => {
+      mounted = false;
+    }
   }, []);
 
   if(state.isLoading) {

@@ -1,10 +1,4 @@
 // @flow
-import firebase from 'react-native-firebase';
+import firebase from '@react-native-firebase/app';
+import '@react-native-firebase/messaging';
 // Optional flow type
-import type { RemoteMessage } from 'react-native-firebase';
-
-export default async (message: RemoteMessage) => {
-    // handle your message
-
-    return Promise.resolve();
-}

@@ -36,15 +36,23 @@ const toggleDrawer = (navigation) => {
   };
 
   React.useLayoutEffect(() => {
-    navigation.setOptions({
-      headerLeft: () => (
-        <Button onPress={() => navigation.dispatch(DrawerActions.toggleDrawer()) }>
-          <Icon name='menu' />
-        </Button>
-      ),
-      headerTitle: "This is Orders page"
-    });
-  }, [navigation]);
+    let mounted = true;
+    if(mounted) {
+      navigation.setOptions({
+        headerLeft: () => (
+          <Button onPress={() => navigation.dispatch(DrawerActions.toggleDrawer()) }>
+            <Icon name='menu' />
+          </Button>
+        ),
+        headerTitle: "This is Orders page"
+      });
+    }
+
+    return () => {
+      mounted = false;
+    }
+
+  }, []);
 
   return (
       <Drawer.Navigator initialRouteName="Main" drawerContent={ ({...navigation}) => CustomDrawerContent(navigation) }>

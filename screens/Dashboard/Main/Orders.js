@@ -1,11 +1,14 @@
 import React, {Component, useState, useEffect} from 'react';
-import { Platform, StyleSheet, AsyncStorage , ScrollView, FlatList, View, TouchableHighlight, Text} from 'react-native';
+import { Platform, StyleSheet, ScrollView, FlatList, View, TouchableHighlight, Text} from 'react-native';
 import { DrawerActions } from '@react-navigation/native';
 import { Container, Header, Content, Card, CardItem, Thumbnail, Button, Icon, Left, Body, Right, Title, Footer, FooterTab } from 'native-base';
 import SafeAreaView from 'react-native-safe-area-view';
 import moment from "moment";
 import clsx from "clsx";
 import Modal from "react-native-modal";
+import AsyncStorage from '@react-native-community/async-storage';
+import { AuthContext } from '../../../Context/AuthContext';
+
 
 function Orders({ navigation }) {
   const [orders, setOrders] = useState([]);
@@ -16,6 +19,7 @@ function Orders({ navigation }) {
   const [onMomentumScrollBegin, setOnMomentumScrollBegin] = useState(true);
   const [pagesDisplayed, setPagesDisplayed] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const authContext  = React.useContext(AuthContext);
 
   const getOrders = (token, currentPage) => {
     let bearer = 'Bearer ' + token;
@@ -128,21 +132,29 @@ function Orders({ navigation }) {
   }
   useEffect(() => {
     // Update the document title using the browser API
-    AsyncStorage.getItem('token')
-    .then((token) => {
-      if(token) {
-        if(
-            (!lastpage || 
-              (pagesDisplayed && !pagesDisplayed.includes(page))
-            )
-          ) {
-          getOrders(token, page);
+    let mounted = true;
+    if(mounted) {
+      AsyncStorage.getItem('token')
+      .then((token) => {
+        if(token) {
+          if(
+              (!lastpage || 
+                (pagesDisplayed && !pagesDisplayed.includes(page))
+              )
+            ) {
+            getOrders(token, page);
+          }
+          setToken(token);
+        } else {
+          authContext.signOut();
         }
-        setToken(token);
-      } else {
-        authContext.signOut();
-      }
-    }) 
+      });
+    }
+
+    return () => {
+      mounted = false;
+    }
+
   }, []);
 
   return (
@@ -154,8 +166,8 @@ function Orders({ navigation }) {
           ListFooterComponent={() =>{
               return  lastpage > 1 ? <Pagination lastpage = {lastpage} /> : null;
             }}
-          numColumns={1}
           onEndReachedThreshold={0.5}
+          keyExtractor = {(item, index) => 'list-item-' + index}
           // onMomentumScrollBegin={() => {setOnMomentumScrollBegin(true);}}
           // onMomentumScrollEnd={() => {
           //   console.log('onEndReached');

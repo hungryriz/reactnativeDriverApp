@@ -24,6 +24,12 @@ export const reducer = (prevState, action) => {
               token: action.token,
               isLoading: action.isLoading
           }
+        case 'RESET':
+          return {
+              loggedOut: true,
+              token: null,
+              isLoading: true
+          }
       }
     };
 export const prevState = { isLoading: true, loggedOut: true };
