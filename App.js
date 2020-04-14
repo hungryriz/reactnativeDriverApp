@@ -11,13 +11,22 @@ import React, { useState, useEffect, useReducer, useMemo } from 'react';
 import LoginForm from './screens/LoginForm';
 import Dashboard from './screens/Dashboard';
 import Splash from './screens/Splash';
-import { Platform, StyleSheet, Text, Button, View } from 'react-native';
+import { Platform, StyleSheet, Text,  View, Alert } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { NavigationContainer, NavigationActions } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { AuthContext, reducer, prevState } from './Context/AuthContext';
 import firebase from '@react-native-firebase/app';
-import '@react-native-firebase/messaging';
+import messaging from '@react-native-firebase/messaging';
+import { DrawerActions } from '@react-navigation/native';
+import { Icon, Button } from 'native-base';
+// import from '@react-native-firebase/notitfications';
+
+
+messaging().setBackgroundMessageHandler(async remoteMessage => {
+  console.log('Message handled in the background!', remoteMessage);
+});
+
 
 const Stack = createStackNavigator();
 
@@ -28,43 +37,19 @@ const App = (props) => {
 // demo2@foodie.com
 // 123456
 
-
-  const getToken = () => {
-    firebase.messaging().getToken()
-      .then(fcmToken => {
-        if (fcmToken) {
-          console.log(fcmToken);
-          // user has a device token
-        } else {
-          // user doesn't have a device token yet
-        } 
-      });
-  }
-
-  const createNotificationListeners = () => {
+  const registerAppWithFCM = async () => {
+    try {
+      await messaging().registerDeviceForRemoteMessages()
+    } catch(error) {
+      console.log(error);
+    }
     
   }
 
-  const getPermission = () => {
-    try {
-        // await firebase.messaging().requestPermission();
-        // User has authorised
-        alert('Permission allowed');
-    } catch (error) {
-        // User has rejected permissions
-        alert(error);
-    }
-  }
 
-  const checkPermission = async () => {
-    const enabled = await firebase.messaging().hasPermission();
-    if (enabled) {
-        // user has permissions
-        getToken();
-    } else {
-        // user doesn't have permission
-        getPermission();
-    }
+
+  const createNotificationListeners = () => {
+    
   }
 
   const authContext = useMemo(
@@ -106,18 +91,55 @@ const App = (props) => {
       []
     );
 
+
+
+  const unsubscribe = () => {
+    registerAppWithFCM();
+
+
+    messaging().onNotificationOpenedApp((remoteMessage) => {
+      alert('onNotificationOpenedApp');
+      console.log('onNotificationOpenedApp', remoteMessage);
+      //navigation.navigate(remoteMessage.data.type);
+    });
+
+    // Check whether an initial notification is available
+
+    messaging().onMessage((remoteMessage) => {
+        alert('onMessage');
+        console.log('onMessage', remoteMessage);
+    });
+
+    messaging()
+      .getInitialNotification()
+      .then(remoteMessage => {
+        // if (remoteMessage) {
+          console.log(
+            'Notification caused app to open from quit state:',
+            remoteMessage,
+          );
+          
+        // }
+        
+      })
+      .catch((error)=>{
+        console.log(error);
+      });
+
+  }
+
+
+
+
   useEffect(() => {
     // Update the document title using the browser API
     let mounted = true;
+    unsubscribe();
+
     if(mounted) {
 
-      checkPermission();
-      createNotificationListeners();
-
-      messageListener = firebase.messaging().onMessage((message: RemoteMessage) => {
-          // Process your message as required
-          alert(message);
-      });
+      // registerAppWithFCM();
+      //checkPermission();
 
       AsyncStorage.getItem('token')
       .then((token) => {
@@ -126,11 +148,15 @@ const App = (props) => {
         } else {
           authContext.signOut();
         }
+      })
+      .catch((error)=>{
+        console.log(error);
       });
     }
 
     return () => {
       mounted = false;
+      unsubscribe();
     }
   }, []);
 
@@ -155,7 +181,16 @@ const App = (props) => {
           <Stack.Navigator mode="modal">
           { state.loggedIn ? (
               <>
-                <Stack.Screen name="Dashboard" component={Dashboard} />
+                <Stack.Screen name="Dashboard" component={Dashboard}
+                  options={({ navigation, route }) => ({
+                    headerTitle: "Order Title",
+                    headerLeft: () => (
+                      <Button onPress={() => navigation.dispatch(DrawerActions.toggleDrawer()) }>
+                        <Icon name='menu' />
+                      </Button>
+                    )
+                })}
+                />
               </>
             ) : (
               <>

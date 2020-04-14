@@ -27,9 +27,9 @@ function LoginForm({ ...props }) {
   }
   const Login =  async () => {
     //let email = 'demo2@foodie.com', password = '123456';
-        // send email and password and get the response
-        setTouchableOpacityDisabled(true);
-        authContext.signIn(email, password);
+    // send email and password and get the response
+    setTouchableOpacityDisabled(true);
+    authContext.signIn(email, password);
   }
 
   
